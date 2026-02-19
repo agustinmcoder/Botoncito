@@ -3,40 +3,149 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Inventario - Pixel Clicker</title>
+  <title>Pixel Clicker - Inventario</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div id="bg-inv" class="bg retro-bg"></div>
-
-  <header class="topbar retro-ui">
-    <div class="brand">Inventario</div>
-    <nav>
-      <a href="index.html" class="btn small">Volver</a>
-      <a href="shop.html" class="btn small">Tienda</a>
-    </nav>
-  </header>
-
-  <main class="ui">
-    <div class="panel retro-panel">
-      <div class="row gap">
-        <div class="stat">Diamantes: <span id="invDiamonds">0</span></div>
+  <div class="ui">
+    <div class="panel">
+      <div class="topbar">
+        <h1>Inventario</h1>
+        <div class="stats">
+          <div class="stat">Diamantes: <span id="diamonds">0</span></div>
+          <button class="btn small" onclick="location.href='index.html'">Menú</button>
+          <button class="btn small alt" onclick="location.href='shop.html'">Tienda</button>
+          <button class="btn small" onclick="location.href='game.html'">Volver al juego</button>
+        </div>
       </div>
 
-      <h4 class="section-title">Botones</h4>
-      <div id="invButtons" class="grid4"></div>
+      <div id="invList" class="inv-list" aria-live="polite"></div>
 
-      <h4 class="section-title">Clicks</h4>
-      <div id="invSounds" class="grid4"></div>
-
-      <h4 class="section-title">Fondos</h4>
-      <div id="invBgs" class="grid4"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+        <button id="sellAllBtn" class="btn small">Vender todo</button>
+        <button id="clearInvBtn" class="btn small alt">Borrar inventario</button>
+      </div>
     </div>
-  </main>
+  </div>
 
-  <div id="toastRoot" class="toast-root"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script src="common.js"></script>
-  <script src="inventory.js"></script>
+  <script>
+    function getItemsLocal(){ try { return JSON.parse(localStorage.getItem('shop_items') || '[]'); } catch(e){ return []; } }
+
+    const invListEl = document.getElementById('invList');
+    const diamondsEl = document.getElementById('diamonds');
+
+    function renderInventory(){
+      const state = loadState() || {};
+      const inv = state.inventory || [];
+      const active = state.active || {};
+      diamondsEl.textContent = state.diamonds || 0;
+      invListEl.innerHTML = '';
+      if (inv.length === 0) {
+        invListEl.innerHTML = `<div style="color:#cfc7b5;font-size:0.85rem">No tenés items aún.</div>`;
+        return;
+      }
+      inv.forEach(entry => {
+        const item = getItemsLocal().find(i => i.id === entry.id) || entry;
+        const el = document.createElement('div');
+        el.className = 'inv-item';
+        el.innerHTML = `
+          <img class="item-thumb" src="${item.thumb}" alt="${item.name}">
+          <div class="item-info">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div class="item-name">${item.name}</div>
+              <div>${active[item.type] === item.id ? '<span class="active-badge">ACTIVO</span>' : ''}</div>
+            </div>
+            <div class="item-desc">${item.desc || ''}</div>
+            <div class="item-row">
+              <div class="inventory-meta"><span style="font-size:0.8rem;color:#cfc7b5">Tipo: ${item.type}</span></div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <button class="btn activate-btn" data-item-id="${item.id}">${active[item.type] === item.id ? 'Desactivar' : 'Activar'}</button>
+                <button class="btn small sell-btn" data-item-id="${item.id}">Vender</button>
+              </div>
+            </div>
+          </div>
+        `;
+        invListEl.appendChild(el);
+      });
+    }
+
+    invListEl.addEventListener('click', (e) => {
+      const act = e.target.closest('.activate-btn');
+      if (act) {
+        const id = act.dataset.itemId;
+        const items = getItemsLocal();
+        const item = items.find(i=>i.id===id);
+        if (!item) return showToast('Ítem no encontrado');
+        const state = loadState() || {};
+        state.active = state.active || {};
+        if (state.active[item.type] === item.id) {
+          delete state.active[item.type];
+          showToast(`${item.name} desactivado`);
+        } else {
+          state.active[item.type] = item.id;
+          showToast(`${item.name} activado`);
+        }
+        saveState(state);
+        renderInventory();
+        if (typeof applyActiveSkins === 'function') applyActiveSkins(state);
+        return;
+      }
+      const sell = e.target.closest('.sell-btn');
+      if (sell) {
+        const id = sell.dataset.itemId;
+        const items = getItemsLocal();
+        const item = items.find(i=>i.id===id);
+        if (!item) return showToast('Ítem no encontrado');
+        const state = loadState() || {};
+        state.inventory = state.inventory || [];
+        const idx = state.inventory.findIndex(i=>i.id===id);
+        if (idx === -1) return showToast('No tenés ese ítem');
+        state.inventory.splice(idx,1);
+        if (state.active && state.active[item.type] === id) delete state.active[item.type];
+        const refund = Math.floor(item.price/2);
+        state.diamonds = (state.diamonds||0) + refund;
+        saveState(state);
+        renderInventory();
+        showToast(`Vendido: ${item.name} (+${refund} ♦)`);
+        return;
+      }
+    });
+
+    document.getElementById('sellAllBtn').addEventListener('click', ()=>{
+      const state = loadState() || {};
+      const inv = state.inventory || [];
+      if (inv.length === 0) return showToast('No hay items para vender');
+      const items = getItemsLocal();
+      let total = 0;
+      inv.forEach(e => {
+        const it = items.find(i => i.id === e.id);
+        if (it) total += Math.floor(it.price / 2);
+      });
+      state.inventory = [];
+      state.active = {};
+      state.diamonds = (state.diamonds || 0) + total;
+      saveState(state);
+      renderInventory();
+      showToast(`Vendiste todo por ${total} ♦`);
+    });
+
+    document.getElementById('clearInvBtn').addEventListener('click', ()=>{
+      if (!confirm('Borrar todo el inventario? Esta acción no se puede deshacer.')) return;
+      const state = loadState() || {};
+      state.inventory = [];
+      state.active = {};
+      saveState(state);
+      renderInventory();
+      showToast('Inventario borrado');
+    });
+
+    initItemsIfMissing();
+    initEconomyIfMissing();
+    initStateIfMissing();
+    renderInventory();
+  </script>
 </body>
 </html>

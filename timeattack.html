@@ -5,36 +5,26 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Pixel Clicker - TimeAttack</title>
   <link rel="stylesheet" href="styles.css" />
-  <style>
-    /* Pequeño ajuste local para asegurar centrado y espaciado */
-    .center-col{display:flex;flex-direction:column;align-items:center;justify-content:center}
-    .gap{gap:12px}
-    .btn.big{font-size:1.2rem;padding:14px 20px}
-  </style>
 </head>
 <body>
-  <div class="bg retro-bg"></div>
   <main class="ui">
-    <div class="panel retro-panel center-col gap">
+    <div class="panel center-col gap">
       <h2 class="big-text">TimeAttack</h2>
       <p>Selecciona la duración:</p>
       <div class="row gap center">
         <button class="btn big" onclick="startTA(10)">10 seg</button>
-        <button class="btn big" onclick="startTA(30)">30 seg</button>
+        <button class="btn big alt" onclick="startTA(30)">30 seg</button>
         <button class="btn big" onclick="startTA(60)">60 seg</button>
       </div>
-
-      <div class="row gap" style="margin-top:12px">
-        <button class="btn small" onclick="location.href='index.html'">Menú</button>
-        <a class="btn small" href="game.html">Volver al juego</a>
+      <div style="margin-top:12px">
+        <a class="btn small" href="index.html">Menú</a>
+        <a class="btn small alt" href="game.html">Volver al juego</a>
       </div>
     </div>
   </main>
 
   <script>
-    function startTA(seconds){
-      location.href = `timeattack_game.html?duration=${seconds}`;
-    }
+    function startTA(seconds){ location.href = `timeattack_game.html?duration=${seconds}`; }
   </script>
 </body>
 </html>
