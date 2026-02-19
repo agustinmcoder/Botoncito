@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pixel Clicker - TimeAttack Juego</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="bg retro-bg"></div>
+  <main class="ui">
+    <div class="panel retro-panel center-col gap">
+      <h2 id="timer" class="big-text">00:00</h2>
+      <button id="redBtn" class="red-btn retro-btn">Click!</button>
+      <div class="stat">Puntos: <span id="points">0</span></div>
+      <div id="result" class="big-text hidden"></div>
+      <button id="backBtn" class="btn small hidden" onclick="location.href='timeattack.html'">Volver</button>
+    </div>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const duration = parseInt(params.get('duration') || '10', 10);
+    const btn = document.getElementById('redBtn');
+    const timerEl = document.getElementById('timer');
+    const pointsEl = document.getElementById('points');
+    const resultEl = document.getElementById('result');
+    const backBtn = document.getElementById('backBtn');
+
+    let points = 0;
+    let timeLeft = duration;
+    let interval;
+
+    function updateTimer(){
+      timerEl.textContent = `00:${String(timeLeft).padStart(2,'0')}`;
+      if (timeLeft <= 0){
+        endGame();
+      }
+      timeLeft--;
+    }
+
+    function startGame(){
+      updateTimer();
+      interval = setInterval(updateTimer,1000);
+      btn.onclick = ()=> {
+        points++;
+        pointsEl.textContent = points;
+      };
+    }
+
+    function endGame(){
+      clearInterval(interval);
+      btn.disabled = true;
+      resultEl.textContent = `¡Tiempo! Hiciste ${points} clicks en ${duration} segundos.`;
+      resultEl.classList.remove('hidden');
+      backBtn.classList.remove('hidden');
+    }
+
+    startGame();
+  </script>
+</body>
+</html>

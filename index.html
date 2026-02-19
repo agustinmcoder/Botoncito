@@ -3,83 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Pixel Clicker</title>
+  <title>Pixel Clicker - Menú</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div id="bg" class="bg retro-bg"></div>
-
-  <header class="topbar retro-ui">
-    <div class="brand">Pixel Clicker</div>
-    <nav>
-      <a href="shop.html" class="btn small">Tienda</a>
-      <a href="inventory.html" class="btn small">Inventario</a>
-    </nav>
-  </header>
-
+  <div class="bg retro-bg"></div>
   <main class="ui">
-    <div class="panel retro-panel">
-      <div class="row center">
-        <div id="counter" class="big-text">0</div>
-      </div>
-
-      <div class="row center">
-        <button id="redBtn" class="red-btn retro-btn" aria-label="Botón rojo"></button>
-      </div>
-
-      <div class="row center gap">
-        <div class="stat">Diamantes: <span id="diamonds">0</span></div>
-        <div class="stat">Clicks: <span id="clicks">0</span></div>
-      </div>
+    <div class="panel retro-panel center-col gap">
+      <h1 class="big-text">Pixel Clicker</h1>
+      <button class="btn big" onclick="location.href='game.html'">Jugar</button>
+      <button class="btn big" onclick="location.href='timeattack.html'">TimeAttack</button>
     </div>
   </main>
-
-  <audio id="clickSound" src="assets/click_default.mp3" preload="auto"></audio>
-
-  <script src="common.js"></script>
-  <script>
-    const btn = document.getElementById('redBtn');
-    const counterEl = document.getElementById('counter');
-    const diamondsEl = document.getElementById('diamonds');
-    const clicksEl = document.getElementById('clicks');
-    const soundEl = document.getElementById('clickSound');
-
-    function renderGame() {
-      const s = loadState();
-      counterEl.textContent = s.clicks;
-      diamondsEl.textContent = s.diamonds;
-      clicksEl.textContent = s.clicks;
-      applyActiveSkins(s);
-    }
-
-    btn.addEventListener('touchstart', e => { e.preventDefault(); handlePress(); });
-    btn.addEventListener('click', e => handlePress());
-
-    function handlePress(){
-      processClick();
-      playActiveSound();
-      animateBtn();
-      renderGame();
-    }
-
-    function animateBtn(){
-      btn.classList.add('pressed');
-      setTimeout(()=>btn.classList.remove('pressed'), 120);
-    }
-
-    function playActiveSound(){
-      const s = loadState();
-      const src = s.active.sound ? s.active.sound : 'assets/click_default.mp3';
-      soundEl.src = src;
-      soundEl.currentTime = 0;
-      const p = soundEl.play();
-      if (p && p.catch) p.catch(()=>{});
-    }
-
-    initEconomyIfMissing();
-    initStateIfMissing();
-    initItemsIfMissing();
-    renderGame();
-  </script>
 </body>
 </html>
