@@ -179,7 +179,10 @@ function showToast(text, ms=3000){
 }
 
 /* Utiles para UI */
-function formatPrice(n){ return `${n} ♦`; }
+function formatPrice(n){ 
+  return `${n} <img src="assets/emerald.png" alt="esmeralda" style="width:16px;height:16px;image-rendering:pixelated;vertical-align:middle">`; 
+}
+
 
 /* Inicializar */
 initEconomyIfMissing();
