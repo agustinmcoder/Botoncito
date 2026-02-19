@@ -36,7 +36,6 @@
     </div>
   </main>
 
-  <!-- Confirm modal -->
   <div id="confirmModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
     <div class="modal-card">
       <div class="big-text">Confirmar reinicio</div>
@@ -47,9 +46,6 @@
       </div>
     </div>
   </div>
-
-  <!-- Audio para clicks (usado por applyActiveEffects) -->
-  <audio id="clickSound" src="assets/click_default.mp3" preload="auto"></audio>
 
   <script src="common.js"></script>
   <script>
@@ -68,22 +64,14 @@
       counterEl.textContent = s.clicks || 0;
       diamondsEl.textContent = s.diamonds || 0;
       clicksEl.textContent = s.clicks || 0;
-      applyActiveEffects(s);
+      applyActiveSkins(s);
     }
 
-    // Click handlers
     btn.addEventListener('touchstart', e=>{ e.preventDefault(); handlePress(); });
     btn.addEventListener('click', ()=> handlePress());
 
     function handlePress(){
       processClick();
-      // reproducir sonido si existe
-      const audio = document.getElementById('clickSound');
-      if (audio) {
-        audio.currentTime = 0;
-        const p = audio.play();
-        if (p && p.catch) p.catch(()=>{});
-      }
       animateBtn();
       renderGame();
     }
@@ -93,7 +81,6 @@
       setTimeout(()=>btn.classList.remove('pressed'),120);
     }
 
-    // Reiniciar clicks
     resetBtn.addEventListener('click', ()=> confirmModal.classList.remove('hidden'));
     confirmNo.addEventListener('click', ()=> confirmModal.classList.add('hidden'));
     confirmYes.addEventListener('click', ()=>{
@@ -106,17 +93,13 @@
     });
     confirmModal.addEventListener('click', e=> { if (e.target === confirmModal) confirmModal.classList.add('hidden'); });
 
-    // Animación táctil accesible
     btn.addEventListener('mousedown', ()=> animateBtn());
     btn.addEventListener('touchstart', e=>{ e.preventDefault(); animateBtn(); }, {passive:false});
     btn.addEventListener('keydown', e=> { if (e.code==='Space' || e.code==='Enter') animateBtn(); });
 
-    // Init
     initEconomyIfMissing();
     initStateIfMissing();
     initItemsIfMissing();
-    // aplicar efectos activos al cargar
-    applyActiveEffects(loadState());
     renderGame();
   </script>
 </body>

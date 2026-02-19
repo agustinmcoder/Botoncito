@@ -27,6 +27,9 @@
 
   <script src="common.js"></script>
   <script>
+    function initItemsIfMissingLocal(){
+      if (!localStorage.getItem('shop_items')) localStorage.setItem('shop_items', JSON.stringify(window._defaultItems || []));
+    }
     function getItemsLocal(){ try { return JSON.parse(localStorage.getItem('shop_items') || '[]'); } catch(e){ return []; } }
 
     const shopListEl = document.getElementById('shopList');
@@ -67,7 +70,7 @@
       renderShop();
     });
 
-    initItemsIfMissing();
+    initItemsIfMissingLocal();
     initEconomyIfMissing();
     initStateIfMissing();
     renderShop();
