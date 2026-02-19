@@ -19,20 +19,17 @@
 
   <main class="ui">
     <div class="panel retro-panel">
-      <!-- Se quitó el contador grande de clicks -->
+      <div class="row center">
+        <div id="counter" class="big-text">0</div>
+      </div>
 
       <div class="row center">
         <button id="redBtn" class="red-btn retro-btn" aria-label="Botón rojo"></button>
       </div>
 
       <div class="row center gap">
-        <div class="stat">
-          Esmeraldas: 
-          <span id="diamonds">0</span>
-          <img src="assets/emerald.png" alt="esmeralda" 
-               style="width:16px;height:16px;image-rendering:pixelated;vertical-align:middle">
-        </div>
-        <div class="stat">Puntos: <span id="clicks">0</span></div>
+        <div class="stat">Diamantes: <span id="diamonds">0</span></div>
+        <div class="stat">Clicks: <span id="clicks">0</span></div>
       </div>
     </div>
   </main>
@@ -42,12 +39,14 @@
   <script src="common.js"></script>
   <script>
     const btn = document.getElementById('redBtn');
+    const counterEl = document.getElementById('counter');
     const diamondsEl = document.getElementById('diamonds');
     const clicksEl = document.getElementById('clicks');
     const soundEl = document.getElementById('clickSound');
 
     function renderGame() {
       const s = loadState();
+      counterEl.textContent = s.clicks;
       diamondsEl.textContent = s.diamonds;
       clicksEl.textContent = s.clicks;
       applyActiveSkins(s);
@@ -80,4 +79,7 @@
     initEconomyIfMissing();
     initStateIfMissing();
     initItemsIfMissing();
-    renderGame
+    renderGame();
+  </script>
+</body>
+</html>
