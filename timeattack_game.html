@@ -11,10 +11,19 @@
   <main class="ui">
     <div class="panel retro-panel center-col gap">
       <h2 id="timer" class="big-text">00:00</h2>
-      <button id="redBtn" class="red-btn retro-btn">Click!</button>
+
+      <!-- Botón centrado -->
+      <div class="row center">
+        <button id="redBtn" class="red-btn retro-btn">Click!</button>
+      </div>
+
       <div class="stat">Puntos: <span id="points">0</span></div>
       <div id="result" class="big-text hidden"></div>
-      <button id="backBtn" class="btn small hidden" onclick="location.href='timeattack.html'">Volver</button>
+
+      <div class="row gap">
+        <button id="backBtn" class="btn small hidden" onclick="location.href='timeattack.html'">Volver</button>
+        <button class="btn small" onclick="location.href='index.html'">Menú</button>
+      </div>
     </div>
   </main>
 
@@ -30,6 +39,7 @@
     let points = 0;
     let timeLeft = duration;
     let interval;
+    let started = false;
 
     function updateTimer(){
       timerEl.textContent = `00:${String(timeLeft).padStart(2,'0')}`;
@@ -39,14 +49,19 @@
       timeLeft--;
     }
 
-    function startGame(){
-      updateTimer();
-      interval = setInterval(updateTimer,1000);
-      btn.onclick = ()=> {
-        points++;
-        pointsEl.textContent = points;
-      };
+    function startTimer(){
+      if (!started){
+        started = true;
+        updateTimer();
+        interval = setInterval(updateTimer,1000);
+      }
     }
+
+    btn.onclick = ()=> {
+      if (!started) startTimer();
+      points++;
+      pointsEl.textContent = points;
+    };
 
     function endGame(){
       clearInterval(interval);
@@ -55,8 +70,6 @@
       resultEl.classList.remove('hidden');
       backBtn.classList.remove('hidden');
     }
-
-    startGame();
   </script>
 </body>
 </html>
