@@ -138,6 +138,50 @@
 
     // Inicializar vista: timer muestra la duración y modal oculto
     resetAndStartAgain();
+
+    // --- Animación táctil/visual para el botón principal ---
+function pressVisual(el, duration = 120) {
+  if (!el) return;
+  // evitar acumulación de timeouts
+  if (el._pressTimeout) {
+    clearTimeout(el._pressTimeout);
+    el._pressTimeout = null;
+  }
+  el.classList.add('pressed');
+  el._pressTimeout = setTimeout(() => {
+    el.classList.remove('pressed');
+    el._pressTimeout = null;
+  }, duration);
+}
+
+// manejar eventos de mouse/touch/teclado
+btn.addEventListener('mousedown', (e) => {
+  pressVisual(btn);
+});
+btn.addEventListener('touchstart', (e) => {
+  e.preventDefault(); // evita doble disparo en algunos navegadores
+  pressVisual(btn);
+}, {passive:false});
+
+// accesibilidad: animar con barra/espacio
+btn.addEventListener('keydown', (e) => {
+  if (e.code === 'Space' || e.code === 'Enter') {
+    pressVisual(btn);
+  }
+});
+
+// Asegurar que al deshabilitar el botón se quite la clase
+const originalDisable = Object.getOwnPropertyDescriptor(HTMLButtonElement.prototype, 'disabled');
+if (originalDisable && originalDisable.set) {
+  const setDisabled = originalDisable.set.bind(btn);
+  Object.defineProperty(btn, 'disabled', {
+    set(value) {
+      setDisabled(value);
+      if (value) btn.classList.remove('pressed');
+    }
+  });
+}
+
   </script>
 </body>
 </html>
