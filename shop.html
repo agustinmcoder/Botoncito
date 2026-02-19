@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tienda - Pixel Clicker</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="bg-shop" class="bg retro-bg"></div>
+
+  <header class="topbar retro-ui">
+    <div class="brand">Tienda</div>
+    <nav>
+      <a href="index.html" class="btn small">Volver</a>
+      <a href="inventory.html" class="btn small">Inventario</a>
+    </nav>
+  </header>
+
+  <main class="ui">
+    <div class="panel retro-panel">
+      <div class="controls row wrap gap">
+        <label class="filter">
+          Tipo
+          <select id="filterType">
+            <option value="all">Todos</option>
+            <option value="button">Botón</option>
+            <option value="sound">Click</option>
+            <option value="bg">Fondo</option>
+          </select>
+        </label>
+
+        <label class="filter">
+          Mostrar
+          <select id="filterOwned">
+            <option value="all">Todos</option>
+            <option value="owned">Solo comprados</option>
+            <option value="notowned">Solo no comprados</option>
+          </select>
+        </label>
+
+        <label class="filter">
+          Ordenar por precio
+          <select id="sortPrice">
+            <option value="asc">Menor a mayor</option>
+            <option value="desc">Mayor a menor</option>
+          </select>
+        </label>
+
+        <div class="spacer"></div>
+        <div class="stat">Diamantes: <span id="shopDiamonds">0</span></div>
+      </div>
+
+      <div id="itemsGrid" class="grid4"></div>
+    </div>
+  </main>
+
+  <!-- Modal compra -->
+  <div id="buyModal" class="modal hidden">
+    <div class="modal-card retro-panel">
+      <div id="modalContent"></div>
+      <div class="row gap">
+        <button id="confirmBuy" class="btn">Comprar</button>
+        <button id="cancelBuy" class="btn alt">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastRoot" class="toast-root"></div>
+
+  <script src="common.js"></script>
+  <script src="shop.js"></script>
+</body>
+</html>

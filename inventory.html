@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Inventario - Pixel Clicker</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="bg-inv" class="bg retro-bg"></div>
+
+  <header class="topbar retro-ui">
+    <div class="brand">Inventario</div>
+    <nav>
+      <a href="index.html" class="btn small">Volver</a>
+      <a href="shop.html" class="btn small">Tienda</a>
+    </nav>
+  </header>
+
+  <main class="ui">
+    <div class="panel retro-panel">
+      <div class="row gap">
+        <div class="stat">Diamantes: <span id="invDiamonds">0</span></div>
+      </div>
+
+      <h4 class="section-title">Botones</h4>
+      <div id="invButtons" class="grid4"></div>
+
+      <h4 class="section-title">Clicks</h4>
+      <div id="invSounds" class="grid4"></div>
+
+      <h4 class="section-title">Fondos</h4>
+      <div id="invBgs" class="grid4"></div>
+    </div>
+  </main>
+
+  <div id="toastRoot" class="toast-root"></div>
+
+  <script src="common.js"></script>
+  <script src="inventory.js"></script>
+</body>
+</html>
