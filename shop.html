@@ -3,72 +3,360 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Tienda - Pixel Clicker</title>
+  <title>Pixel Clicker - Tienda e Inventario</title>
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* Estilos locales retro para tienda + inventario */
+    body { font-family: "Press Start 2P", monospace, system-ui; background:#0b1020; color:#efe8d8; margin:0; }
+    .ui { max-width:980px; margin:28px auto; padding:12px; }
+    .panel { background:linear-gradient(180deg,#1b2436,#0f1724); border:4px solid #111; padding:14px; box-shadow:8px 8px 0 rgba(0,0,0,0.6); border-radius:6px; }
+    h1 { font-size:1.4rem; margin:0 0 12px 0; text-align:center; color:#fff; }
+    .topbar { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+    .stats { display:flex; gap:12px; align-items:center; }
+    .stat { background:rgba(255,255,255,0.03); padding:6px 8px; border:2px solid rgba(0,0,0,0.4); border-radius:4px; font-weight:700; }
+    .btn { background:#ff4b4b; color:#fff; border:2px solid #111; padding:8px 10px; cursor:pointer; font-weight:700; }
+    .btn.alt { background:#4b8bff; }
+    .btn.small { padding:6px 8px; font-size:0.85rem; }
+    .btn[disabled] { opacity:0.45; cursor:not-allowed; transform:none; }
+    .layout { display:grid; grid-template-columns:1fr 360px; gap:12px; align-items:start; }
+    .shop-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px; }
+    .shop-item, .inv-item { background:linear-gradient(180deg,#2a3346,#1b2436); border:3px solid #111; padding:10px; display:flex; gap:8px; align-items:center; }
+    .item-thumb { width:64px; height:64px; image-rendering:pixelated; border:2px solid #000; background:#000; }
+    .item-info { flex:1; display:flex; flex-direction:column; gap:6px; }
+    .item-name { font-weight:700; color:#fff; font-size:0.9rem; }
+    .item-desc { font-size:0.72rem; color:#cfc7b5; line-height:1.1; }
+    .item-row { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+    .item-price { font-weight:800; color:#ffd166; font-size:0.9rem; }
+    .inventory-panel { display:flex; flex-direction:column; gap:8px; }
+    .inv-list { display:flex; flex-direction:column; gap:8px; margin-top:8px; }
+    .inv-actions { display:flex; gap:8px; align-items:center; }
+    .active-badge { background:#2ecc71; color:#042; padding:4px 6px; border-radius:4px; font-weight:800; font-size:0.7rem; }
+    .toast { position:fixed; left:50%; transform:translateX(-50%); bottom:18px; background:#111; color:#fff; padding:10px 14px; border-radius:6px; border:3px solid #333; display:none; z-index:200; }
+    @media (max-width:920px){ .layout{grid-template-columns:1fr;} .shop-grid{grid-template-columns:repeat(2,1fr);} }
+    @media (max-width:520px){ .shop-grid{grid-template-columns:repeat(1,1fr);} .item-thumb{width:56px;height:56px} }
+  </style>
 </head>
 <body>
-  <div id="bg-shop" class="bg retro-bg"></div>
-
-  <header class="topbar retro-ui">
-    <div class="brand">Tienda</div>
-    <nav>
-      <a href="index.html" class="btn small">Volver</a>
-      <a href="inventory.html" class="btn small">Inventario</a>
-    </nav>
-  </header>
-
-  <main class="ui">
-    <div class="panel retro-panel">
-      <div class="controls row wrap gap">
-        <label class="filter">
-          Tipo
-          <select id="filterType">
-            <option value="all">Todos</option>
-            <option value="button">Botón</option>
-            <option value="sound">Click</option>
-            <option value="bg">Fondo</option>
-          </select>
-        </label>
-
-        <label class="filter">
-          Mostrar
-          <select id="filterOwned">
-            <option value="all">Todos</option>
-            <option value="owned">Solo comprados</option>
-            <option value="notowned">Solo no comprados</option>
-          </select>
-        </label>
-
-        <label class="filter">
-          Ordenar por precio
-          <select id="sortPrice">
-            <option value="asc">Menor a mayor</option>
-            <option value="desc">Mayor a menor</option>
-          </select>
-        </label>
-
-        <div class="spacer"></div>
-        <div class="stat">Diamantes: <span id="shopDiamonds">0</span></div>
+  <div class="ui">
+    <div class="panel">
+      <div class="topbar">
+        <h1>Tienda</h1>
+        <div class="stats">
+          <div class="stat">Diamantes: <span id="diamonds">0</span></div>
+          <button class="btn small" onclick="location.href='index.html'">Menú</button>
+          <button class="btn small alt" onclick="location.href='game.html'">Volver al juego</button>
+        </div>
       </div>
 
-      <div id="itemsGrid" class="grid4"></div>
-    </div>
-  </main>
+      <div class="layout">
+        <!-- Columna principal: lista de ítems -->
+        <div>
+          <div style="font-weight:800;color:#ffd166;margin-bottom:8px">Items disponibles</div>
+          <div id="shopList" class="shop-grid" aria-live="polite"></div>
+        </div>
 
-  <!-- Modal compra -->
-  <div id="buyModal" class="modal hidden">
-    <div class="modal-card retro-panel">
-      <div id="modalContent"></div>
-      <div class="row gap">
-        <button id="confirmBuy" class="btn">Comprar</button>
-        <button id="cancelBuy" class="btn alt">Cancelar</button>
+        <!-- Columna derecha: inventario y acciones -->
+        <aside class="inventory-panel">
+          <div style="font-weight:800;color:#ffd166">Inventario</div>
+          <div id="invList" class="inv-list" aria-live="polite"></div>
+          <div style="margin-top:8px;display:flex;gap:8px;justify-content:flex-end">
+            <button id="sellAllBtn" class="btn small">Vender todo</button>
+            <button id="clearInvBtn" class="btn small alt">Borrar inventario</button>
+          </div>
+        </aside>
       </div>
     </div>
   </div>
 
-  <div id="toastRoot" class="toast-root"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script src="common.js"></script>
-  <script src="shop.js"></script>
+  <script>
+    /*****************************************************************
+     * Fallback para loadState/saveState si no existe common.js
+     *****************************************************************/
+    if (!window.loadState) {
+      window.loadState = function(){
+        try { return JSON.parse(localStorage.getItem('pixel_state') || '{}'); } catch(e){ return {}; }
+      };
+    }
+    if (!window.saveState) {
+      window.saveState = function(s){
+        try { localStorage.setItem('pixel_state', JSON.stringify(s || {})); } catch(e){}
+      };
+    }
+
+    /*****************************************************************
+     * Default items (ejemplos). Editá o agregá objetos aquí.
+     * Campos: id, name, price, desc, thumb, type ('skin'|'sound'|'upgrade')
+     *****************************************************************/
+    const defaultItems = [
+      { id:'skin_red', name:'Skin Rojo', price:50, desc:'Piel roja pixelada', thumb:'assets/skin_red_thumb.png', type:'skin' },
+      { id:'skin_blue', name:'Skin Azul', price:120, desc:'Piel azul con brillo', thumb:'assets/skin_blue_thumb.png', type:'skin' },
+      { id:'sound_boop', name:'Sonido Boop', price:80, desc:'Sonido click alternativo', thumb:'assets/sound_boop_thumb.png', type:'sound' },
+      { id:'auto_clicker', name:'Auto Clicker', price:500, desc:'Genera clicks automáticos', thumb:'assets/auto_thumb.png', type:'upgrade' }
+    ];
+
+    /*****************************************************************
+     * Inicialización de items en localStorage si faltan
+     *****************************************************************/
+    function initItemsIfMissing(){
+      const stored = localStorage.getItem('shop_items');
+      if (!stored) {
+        localStorage.setItem('shop_items', JSON.stringify(defaultItems));
+      }
+    }
+    function getItems(){ try { return JSON.parse(localStorage.getItem('shop_items') || '[]'); } catch(e){ return []; } }
+
+    /*****************************************************************
+     * Estado por defecto (si no existe)
+     *****************************************************************/
+    function ensureStateDefaults(){
+      const s = loadState() || {};
+      if (typeof s.diamonds === 'undefined') s.diamonds = 200;
+      if (typeof s.clicks === 'undefined') s.clicks = 0;
+      if (!Array.isArray(s.inventory)) s.inventory = [];
+      if (!s.active) s.active = {}; // e.g. { skin: 'skin_red', sound: 'sound_boop' }
+      saveState(s);
+    }
+
+    /*****************************************************************
+     * Renderizado de tienda e inventario
+     *****************************************************************/
+    const shopListEl = document.getElementById('shopList');
+    const invListEl = document.getElementById('invList');
+    const diamondsEl = document.getElementById('diamonds');
+    const toastEl = document.getElementById('toast');
+
+    function renderShop(){
+      const items = getItems();
+      const state = loadState() || {};
+      const diamonds = state.diamonds || 0;
+      diamondsEl.textContent = diamonds;
+
+      shopListEl.innerHTML = '';
+      items.forEach(item => {
+        const itemEl = document.createElement('div');
+        itemEl.className = 'shop-item';
+        itemEl.innerHTML = `
+          <img class="item-thumb" src="${item.thumb}" alt="${item.name}">
+          <div class="item-info">
+            <div class="item-name">${item.name}</div>
+            <div class="item-desc">${item.desc || ''}</div>
+            <div class="item-row">
+              <div class="item-price">${item.price} ♦</div>
+              <div>
+                <button class="btn buy-btn" data-item-id="${item.id}">Comprar</button>
+              </div>
+            </div>
+          </div>
+        `;
+        const btn = itemEl.querySelector('.buy-btn');
+        if (diamonds < item.price) btn.disabled = true;
+        shopListEl.appendChild(itemEl);
+      });
+    }
+
+    function renderInventory(){
+      const state = loadState() || {};
+      const inv = state.inventory || [];
+      const active = state.active || {};
+      invListEl.innerHTML = '';
+
+      if (inv.length === 0) {
+        invListEl.innerHTML = `<div style="color:#cfc7b5;font-size:0.85rem">No tenés items aún.</div>`;
+        return;
+      }
+
+      inv.forEach(entry => {
+        const item = getItems().find(i => i.id === entry.id) || entry;
+        const el = document.createElement('div');
+        el.className = 'inv-item';
+        el.innerHTML = `
+          <img class="item-thumb" src="${item.thumb}" alt="${item.name}">
+          <div class="item-info">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div class="item-name">${item.name}</div>
+              <div>${active[item.type] === item.id ? '<span class="active-badge">ACTIVO</span>' : ''}</div>
+            </div>
+            <div class="item-desc">${item.desc || ''}</div>
+            <div class="item-row">
+              <div class="inventory-meta"><span class="inventory-count">Tipo: ${item.type}</span></div>
+              <div class="inv-actions">
+                <button class="btn activate-btn" data-item-id="${item.id}">${active[item.type] === item.id ? 'Desactivar' : 'Activar'}</button>
+                <button class="btn small sell-btn" data-item-id="${item.id}">Vender</button>
+              </div>
+            </div>
+          </div>
+        `;
+        invListEl.appendChild(el);
+      });
+    }
+
+    /*****************************************************************
+     * Compra: descontar diamantes y añadir al inventario
+     *****************************************************************/
+    function buyItem(itemId){
+      const items = getItems();
+      const item = items.find(i => i.id === itemId);
+      if (!item) return showToast('Ítem no encontrado');
+
+      const state = loadState() || {};
+      state.diamonds = state.diamonds || 0;
+
+      if (state.diamonds < item.price) {
+        showToast('No tenés suficientes diamantes');
+        return;
+      }
+
+      state.diamonds -= item.price;
+      state.inventory = state.inventory || [];
+      // permitir duplicados o no: aquí evitamos duplicados por id
+      if (!state.inventory.find(i => i.id === item.id)) {
+        state.inventory.push({ id: item.id, boughtAt: Date.now() });
+      }
+      saveState(state);
+      renderShop();
+      renderInventory();
+      showToast(`Comprado: ${item.name}`);
+    }
+
+    /*****************************************************************
+     * Activar / Desactivar item del inventario
+     *****************************************************************/
+    function toggleActivate(itemId){
+      const items = getItems();
+      const item = items.find(i => i.id === itemId);
+      if (!item) return showToast('Ítem no encontrado');
+
+      const state = loadState() || {};
+      state.active = state.active || {};
+      const current = state.active[item.type];
+
+      if (current === item.id) {
+        // desactivar
+        delete state.active[item.type];
+        showToast(`${item.name} desactivado`);
+      } else {
+        // activar
+        state.active[item.type] = item.id;
+        showToast(`${item.name} activado`);
+      }
+
+      saveState(state);
+      renderShop();
+      renderInventory();
+      // aplicar efectos inmediatos si existe applyActiveSkins en common.js
+      if (typeof applyActiveSkins === 'function') {
+        applyActiveSkins(state);
+      }
+    }
+
+    /*****************************************************************
+     * Vender item: eliminar del inventario y devolver la mitad del precio
+     *****************************************************************/
+    function sellItem(itemId){
+      const items = getItems();
+      const item = items.find(i => i.id === itemId);
+      if (!item) return showToast('Ítem no encontrado');
+
+      const state = loadState() || {};
+      state.inventory = state.inventory || [];
+      const idx = state.inventory.findIndex(i => i.id === itemId);
+      if (idx === -1) return showToast('No tenés ese ítem');
+
+      // eliminar
+      state.inventory.splice(idx,1);
+      // si estaba activo, desactivarlo
+      if (state.active && state.active[item.type] === itemId) {
+        delete state.active[item.type];
+      }
+      // reembolsar la mitad del precio (redondeo hacia abajo)
+      const refund = Math.floor(item.price / 2);
+      state.diamonds = (state.diamonds || 0) + refund;
+
+      saveState(state);
+      renderShop();
+      renderInventory();
+      showToast(`Vendido: ${item.name} (+${refund} ♦)`);
+    }
+
+    /*****************************************************************
+     * Vender todo / borrar inventario (acciones masivas)
+     *****************************************************************/
+    function sellAll(){
+      const state = loadState() || {};
+      const inv = state.inventory || [];
+      if (inv.length === 0) return showToast('No hay items para vender');
+      const items = getItems();
+      let total = 0;
+      inv.forEach(e => {
+        const it = items.find(i => i.id === e.id);
+        if (it) total += Math.floor(it.price / 2);
+      });
+      state.inventory = [];
+      state.active = {};
+      state.diamonds = (state.diamonds || 0) + total;
+      saveState(state);
+      renderShop();
+      renderInventory();
+      showToast(`Vendiste todo por ${total} ♦`);
+    }
+
+    function clearInventory(){
+      if (!confirm('Borrar todo el inventario? Esta acción no se puede deshacer.')) return;
+      const state = loadState() || {};
+      state.inventory = [];
+      state.active = {};
+      saveState(state);
+      renderShop();
+      renderInventory();
+      showToast('Inventario borrado');
+    }
+
+    /*****************************************************************
+     * Delegación de eventos
+     *****************************************************************/
+    shopListEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('.buy-btn');
+      if (!btn) return;
+      const itemId = btn.dataset.itemId;
+      buyItem(itemId);
+    });
+
+    invListEl.addEventListener('click', (e) => {
+      const act = e.target.closest('.activate-btn');
+      if (act) {
+        toggleActivate(act.dataset.itemId);
+        return;
+      }
+      const sell = e.target.closest('.sell-btn');
+      if (sell) {
+        sellItem(sell.dataset.itemId);
+        return;
+      }
+    });
+
+    document.getElementById('sellAllBtn').addEventListener('click', sellAll);
+    document.getElementById('clearInvBtn').addEventListener('click', clearInventory);
+
+    /*****************************************************************
+     * Toast simple
+     *****************************************************************/
+    let toastTimeout = null;
+    function showToast(msg, ms = 1600){
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastEl.textContent = msg;
+      toastEl.style.display = 'block';
+      toastTimeout = setTimeout(()=> { toastEl.style.display = 'none'; }, ms);
+    }
+
+    /*****************************************************************
+     * Inicialización
+     *****************************************************************/
+    initItemsIfMissing();
+    ensureStateDefaults();
+    renderShop();
+    renderInventory();
+  </script>
 </body>
 </html>
