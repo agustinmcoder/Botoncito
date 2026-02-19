@@ -5,11 +5,25 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Pixel Clicker - Juego</title>
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* Modal local para confirmación */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:60}
+    .modal-card{background:linear-gradient(180deg,#f8f6f0,#efe9d8);padding:14px;border:4px solid #111;max-width:360px;text-align:center;box-shadow:8px 8px 0 rgba(0,0,0,0.6)}
+    .modal-actions{display:flex;gap:10px;justify-content:center;margin-top:12px}
+    .hidden{display:none}
+    /* Ajuste para que el botón de reiniciar quede a la izquierda */
+    .topbar .left-actions { display:flex; gap:8px; align-items:center; }
+    .topbar .left-actions .btn.small { padding:6px 8px; font-size:0.85rem; }
+  </style>
 </head>
 <body>
   <div id="bg" class="bg retro-bg"></div>
 
   <header class="topbar retro-ui">
+    <div class="left-actions">
+      <button id="resetBtn" class="btn small" title="Reiniciar clicks">Reiniciar clicks</button>
+    </div>
+
     <div class="brand">Pixel Clicker</div>
     <nav>
       <a href="index.html" class="btn small">Menú</a>
@@ -35,6 +49,18 @@
     </div>
   </main>
 
+  <!-- Modal confirmación reinicio -->
+  <div id="confirmModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <div class="modal-card">
+      <div id="confirmTitle" class="big-text">Confirmar reinicio</div>
+      <div style="font-weight:700;margin-top:8px">¿Estás seguro que querés reiniciar los clicks?</div>
+      <div class="modal-actions">
+        <button id="confirmYes" class="btn">Sí</button>
+        <button id="confirmNo" class="btn alt">No</button>
+      </div>
+    </div>
+  </div>
+
   <audio id="clickSound" src="assets/click_default.mp3" preload="auto"></audio>
 
   <script src="common.js"></script>
@@ -44,6 +70,11 @@
     const diamondsEl = document.getElementById('diamonds');
     const clicksEl = document.getElementById('clicks');
     const soundEl = document.getElementById('clickSound');
+
+    const resetBtn = document.getElementById('resetBtn');
+    const confirmModal = document.getElementById('confirmModal');
+    const confirmYes = document.getElementById('confirmYes');
+    const confirmNo = document.getElementById('confirmNo');
 
     function renderGame() {
       const s = loadState();
@@ -77,6 +108,35 @@
       if (p && p.catch) p.catch(()=>{});
     }
 
+    // --- Reiniciar clicks: abrir modal ---
+    resetBtn.addEventListener('click', () => {
+      confirmModal.classList.remove('hidden');
+    });
+
+    // Cancelar
+    confirmNo.addEventListener('click', () => {
+      confirmModal.classList.add('hidden');
+    });
+
+    // Confirmar: reiniciar solo clicks (no tocar diamantes)
+    confirmYes.addEventListener('click', () => {
+      const state = loadState() || {};
+      // Reiniciamos solo clicks y el contador visual; no tocamos diamantes ni claimedMilestones
+      state.clicks = 0;
+      // Opcional: mantener partialDiamondFraction para no perder fracciones acumuladas
+      // state.partialDiamondFraction = state.partialDiamondFraction || 0;
+      saveState(state);
+      renderGame();
+      confirmModal.classList.add('hidden');
+      showToast('Clicks reiniciados');
+    });
+
+    // Cerrar modal si se hace click fuera de la tarjeta
+    confirmModal.addEventListener('click', (e) => {
+      if (e.target === confirmModal) confirmModal.classList.add('hidden');
+    });
+
+    // Inicializar
     initEconomyIfMissing();
     initStateIfMissing();
     initItemsIfMissing();
