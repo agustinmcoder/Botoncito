@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Botón Contador - Juego</title>
+  <title>Pixel Clicker</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -19,17 +19,20 @@
 
   <main class="ui">
     <div class="panel retro-panel">
-      <div class="row center">
-        <div id="counter" class="big-text">0</div>
-      </div>
+      <!-- Se quitó el contador grande de clicks -->
 
       <div class="row center">
         <button id="redBtn" class="red-btn retro-btn" aria-label="Botón rojo"></button>
       </div>
 
       <div class="row center gap">
-        <div class="stat">Diamantes: <span id="diamonds">0</span></div>
-        <div class="stat">Clicks: <span id="clicks">0</span></div>
+        <div class="stat">
+          Esmeraldas: 
+          <span id="diamonds">0</span>
+          <img src="assets/emerald.png" alt="esmeralda" 
+               style="width:16px;height:16px;image-rendering:pixelated;vertical-align:middle">
+        </div>
+        <div class="stat">Puntos: <span id="clicks">0</span></div>
       </div>
     </div>
   </main>
@@ -38,26 +41,23 @@
 
   <script src="common.js"></script>
   <script>
-    // Conecta el juego principal con common.js
     const btn = document.getElementById('redBtn');
-    const counterEl = document.getElementById('counter');
     const diamondsEl = document.getElementById('diamonds');
     const clicksEl = document.getElementById('clicks');
     const soundEl = document.getElementById('clickSound');
 
     function renderGame() {
       const s = loadState();
-      counterEl.textContent = s.clicks;
       diamondsEl.textContent = s.diamonds;
       clicksEl.textContent = s.clicks;
-      applyActiveSkins(s); // aplica fondo, botón y sonido
+      applyActiveSkins(s);
     }
 
     btn.addEventListener('touchstart', e => { e.preventDefault(); handlePress(); });
     btn.addEventListener('click', e => handlePress());
 
     function handlePress(){
-      processClick(); // common.js: actualiza state, convierte diamantes, milestones
+      processClick();
       playActiveSound();
       animateBtn();
       renderGame();
@@ -77,10 +77,7 @@
       if (p && p.catch) p.catch(()=>{});
     }
 
-    // Inicializar
     initEconomyIfMissing();
     initStateIfMissing();
-    renderGame();
-  </script>
-</body>
-</html>
+    initItemsIfMissing();
+    renderGame
