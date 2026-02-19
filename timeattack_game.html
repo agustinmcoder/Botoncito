@@ -36,6 +36,9 @@
     </div>
   </div>
 
+  <!-- Audio para clicks (aplicable por skins/sonidos) -->
+  <audio id="clickSound" src="assets/click_default.mp3" preload="auto"></audio>
+
   <script src="common.js"></script>
   <script>
     const params = new URLSearchParams(location.search);
@@ -70,6 +73,13 @@
     btn.addEventListener('click', ()=> {
       if (!started) startTimer();
       points++;
+      // reproducir sonido si existe
+      const audio = document.getElementById('clickSound');
+      if (audio) {
+        audio.currentTime = 0;
+        const p = audio.play();
+        if (p && p.catch) p.catch(()=>{});
+      }
     });
 
     function endGame(){
@@ -88,11 +98,17 @@
       points = 0; timeLeft = duration; started = false; btn.disabled = false; backBtn.classList.add('hidden'); resultModal.style.display='none'; renderTimer();
     }
 
+    // Animación táctil
     btn.addEventListener('mousedown', ()=> btn.classList.add('pressed'));
     btn.addEventListener('mouseup', ()=> btn.classList.remove('pressed'));
     btn.addEventListener('touchstart', e=>{ e.preventDefault(); btn.classList.add('pressed'); }, {passive:false});
     btn.addEventListener('touchend', ()=> btn.classList.remove('pressed'));
 
+    // Init
+    initItemsIfMissing();
+    initStateIfMissing();
+    initEconomyIfMissing();
+    applyActiveEffects(loadState());
     resetAndStartAgain();
   </script>
 </body>

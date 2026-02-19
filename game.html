@@ -5,54 +5,41 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Pixel Clicker - Juego</title>
   <link rel="stylesheet" href="styles.css" />
-  <style>
-    /* Modal local para confirmación */
-    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:60}
-    .modal-card{background:linear-gradient(180deg,#f8f6f0,#efe9d8);padding:14px;border:4px solid #111;max-width:360px;text-align:center;box-shadow:8px 8px 0 rgba(0,0,0,0.6)}
-    .modal-actions{display:flex;gap:10px;justify-content:center;margin-top:12px}
-    .hidden{display:none}
-    /* Ajuste para que el botón de reiniciar quede a la izquierda */
-    .topbar .left-actions { display:flex; gap:8px; align-items:center; }
-    .topbar .left-actions .btn.small { padding:6px 8px; font-size:0.85rem; }
-  </style>
 </head>
 <body>
-  <div id="bg" class="bg retro-bg"></div>
-
-  <header class="topbar retro-ui">
+  <header class="topbar">
     <div class="left-actions">
-      <button id="resetBtn" class="btn small" title="Reiniciar clicks">Reiniciar clicks</button>
+      <button id="resetBtn" class="btn small">Reiniciar clicks</button>
     </div>
-
     <div class="brand">Pixel Clicker</div>
     <nav>
-      <a href="index.html" class="btn small">Menú</a>
-      <a href="shop.html" class="btn small">Tienda</a>
-      <a href="inventory.html" class="btn small">Inventario</a>
+      <a class="btn small" href="index.html">Menú</a>
+      <a class="btn small" href="shop.html">Tienda</a>
+      <a class="btn small" href="inventory.html">Inventario</a>
     </nav>
   </header>
 
   <main class="ui">
-    <div class="panel retro-panel no-fill">
+    <div class="panel no-fill">
       <div class="row center">
         <div id="counter" class="big-text">0</div>
       </div>
 
-      <div class="row center">
-        <button id="redBtn" class="red-btn retro-btn" aria-label="Botón rojo"></button>
+      <div class="center-button">
+        <button id="redBtn" class="red-btn" aria-label="Botón rojo"></button>
       </div>
 
-      <div class="row center gap">
+      <div class="row center gap" style="margin-top:8px">
         <div class="stat">Diamantes: <span id="diamonds">0</span></div>
         <div class="stat">Clicks: <span id="clicks">0</span></div>
       </div>
     </div>
   </main>
 
-  <!-- Modal confirmación reinicio -->
-  <div id="confirmModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+  <!-- Confirm modal -->
+  <div id="confirmModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
     <div class="modal-card">
-      <div id="confirmTitle" class="big-text">Confirmar reinicio</div>
+      <div class="big-text">Confirmar reinicio</div>
       <div style="font-weight:700;margin-top:8px">¿Estás seguro que querés reiniciar los clicks?</div>
       <div class="modal-actions">
         <button id="confirmYes" class="btn">Sí</button>
@@ -61,6 +48,7 @@
     </div>
   </div>
 
+  <!-- Audio para clicks (usado por applyActiveEffects) -->
   <audio id="clickSound" src="assets/click_default.mp3" preload="auto"></audio>
 
   <script src="common.js"></script>
@@ -69,77 +57,66 @@
     const counterEl = document.getElementById('counter');
     const diamondsEl = document.getElementById('diamonds');
     const clicksEl = document.getElementById('clicks');
-    const soundEl = document.getElementById('clickSound');
 
     const resetBtn = document.getElementById('resetBtn');
     const confirmModal = document.getElementById('confirmModal');
     const confirmYes = document.getElementById('confirmYes');
     const confirmNo = document.getElementById('confirmNo');
 
-    function renderGame() {
+    function renderGame(){
       const s = loadState();
-      counterEl.textContent = s.clicks;
-      diamondsEl.textContent = s.diamonds;
-      clicksEl.textContent = s.clicks;
-      applyActiveSkins(s);
+      counterEl.textContent = s.clicks || 0;
+      diamondsEl.textContent = s.diamonds || 0;
+      clicksEl.textContent = s.clicks || 0;
+      applyActiveEffects(s);
     }
 
-    btn.addEventListener('touchstart', e => { e.preventDefault(); handlePress(); });
-    btn.addEventListener('click', e => handlePress());
+    // Click handlers
+    btn.addEventListener('touchstart', e=>{ e.preventDefault(); handlePress(); });
+    btn.addEventListener('click', ()=> handlePress());
 
     function handlePress(){
       processClick();
-      playActiveSound();
+      // reproducir sonido si existe
+      const audio = document.getElementById('clickSound');
+      if (audio) {
+        audio.currentTime = 0;
+        const p = audio.play();
+        if (p && p.catch) p.catch(()=>{});
+      }
       animateBtn();
       renderGame();
     }
 
     function animateBtn(){
       btn.classList.add('pressed');
-      setTimeout(()=>btn.classList.remove('pressed'), 120);
+      setTimeout(()=>btn.classList.remove('pressed'),120);
     }
 
-    function playActiveSound(){
-      const s = loadState();
-      const src = s.active.sound ? s.active.sound : 'assets/click_default.mp3';
-      soundEl.src = src;
-      soundEl.currentTime = 0;
-      const p = soundEl.play();
-      if (p && p.catch) p.catch(()=>{});
-    }
-
-    // --- Reiniciar clicks: abrir modal ---
-    resetBtn.addEventListener('click', () => {
-      confirmModal.classList.remove('hidden');
-    });
-
-    // Cancelar
-    confirmNo.addEventListener('click', () => {
-      confirmModal.classList.add('hidden');
-    });
-
-    // Confirmar: reiniciar solo clicks (no tocar diamantes)
-    confirmYes.addEventListener('click', () => {
-      const state = loadState() || {};
-      // Reiniciamos solo clicks y el contador visual; no tocamos diamantes ni claimedMilestones
-      state.clicks = 0;
-      // Opcional: mantener partialDiamondFraction para no perder fracciones acumuladas
-      // state.partialDiamondFraction = state.partialDiamondFraction || 0;
-      saveState(state);
+    // Reiniciar clicks
+    resetBtn.addEventListener('click', ()=> confirmModal.classList.remove('hidden'));
+    confirmNo.addEventListener('click', ()=> confirmModal.classList.add('hidden'));
+    confirmYes.addEventListener('click', ()=>{
+      const s = loadState() || {};
+      s.clicks = 0;
+      saveState(s);
       renderGame();
       confirmModal.classList.add('hidden');
       showToast('Clicks reiniciados');
     });
+    confirmModal.addEventListener('click', e=> { if (e.target === confirmModal) confirmModal.classList.add('hidden'); });
 
-    // Cerrar modal si se hace click fuera de la tarjeta
-    confirmModal.addEventListener('click', (e) => {
-      if (e.target === confirmModal) confirmModal.classList.add('hidden');
-    });
+    // Animación táctil accesible
+    btn.addEventListener('mousedown', ()=> animateBtn());
+    btn.addEventListener('touchstart', e=>{ e.preventDefault(); animateBtn(); }, {passive:false});
+    btn.addEventListener('keydown', e=> { if (e.code==='Space' || e.code==='Enter') animateBtn(); });
 
-    // Inicializar
+    // Init
     initEconomyIfMissing();
     initStateIfMissing();
     initItemsIfMissing();
+    // aplicar efectos activos al cargar
+    applyActiveEffects(loadState());
     renderGame();
   </script>
 </body>

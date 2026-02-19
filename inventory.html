@@ -90,7 +90,7 @@
         }
         saveState(state);
         renderInventory();
-        if (typeof applyActiveSkins === 'function') applyActiveSkins(state);
+        applyActiveEffects(state);
         return;
       }
       const sell = e.target.closest('.sell-btn');
