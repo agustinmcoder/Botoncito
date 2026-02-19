@@ -56,3 +56,12 @@ nav a{margin-left:8px}
 
 /* Pixel effect */
 .pixelated { image-rendering: pixelated; }
+
+.center-col{display:flex;flex-direction:column;align-items:center;justify-content:center}
+.btn.big{font-size:1.4rem;padding:16px 24px}
+.hidden{display:none}
+
+
+/* Panel transparente: sin relleno y sin sombra, saca el borde si existe */
+.panel.no-fill { background: transparent !important; box-shadow: none !important; border: none !important; }
+
