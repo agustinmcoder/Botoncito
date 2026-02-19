@@ -5,6 +5,19 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Pixel Clicker - TimeAttack Juego</title>
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* Modal y centrado local para asegurar funcionamiento sin tocar styles.css */
+    .center-col{display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .gap{gap:12px}
+    .hidden{display:none}
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:50}
+    .modal-card{background:linear-gradient(180deg,#f8f6f0,#efe9d8);padding:18px;border:4px solid #111;max-width:420px;text-align:center;box-shadow:8px 8px 0 rgba(0,0,0,0.6)}
+    .modal-card .big-text{margin-bottom:12px}
+    .modal-actions{display:flex;gap:8px;justify-content:center;margin-top:12px}
+    .btn.big{font-size:1.1rem;padding:12px 18px}
+    /* Asegurar que el botón principal esté centrado dentro del panel */
+    .panel .center-button { display:flex; justify-content:center; width:100%; }
+  </style>
 </head>
 <body>
   <div class="bg retro-bg"></div>
@@ -12,37 +25,59 @@
     <div class="panel retro-panel center-col gap">
       <h2 id="timer" class="big-text">00:00</h2>
 
-      <!-- Botón centrado -->
-      <div class="row center">
+      <!-- Botón centrado dentro del panel -->
+      <div class="center-button">
         <button id="redBtn" class="red-btn retro-btn">Click!</button>
       </div>
 
-      <div class="stat">Puntos: <span id="points">0</span></div>
-      <div id="result" class="big-text hidden"></div>
+      <!-- No mostramos el contador de clicks durante la partida -->
+      <div id="result" class="big-text hidden" aria-live="polite"></div>
 
-      <div class="row gap">
+      <div class="row gap" style="margin-top:12px">
         <button id="backBtn" class="btn small hidden" onclick="location.href='timeattack.html'">Volver</button>
         <button class="btn small" onclick="location.href='index.html'">Menú</button>
       </div>
     </div>
   </main>
 
+  <!-- Modal de resultado (inicialmente oculto) -->
+  <div id="resultModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-card">
+      <div id="modalTitle" class="big-text">Resultado</div>
+      <div id="modalMessage" style="font-weight:700;margin-bottom:8px"></div>
+      <div class="modal-actions">
+        <button id="retryBtn" class="btn">Jugar otra vez</button>
+        <button id="toSelectorBtn" class="btn alt">Volver a TimeAttack</button>
+        <button id="toMenuBtn" class="btn small">Menú</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const params = new URLSearchParams(location.search);
     const duration = parseInt(params.get('duration') || '10', 10);
     const btn = document.getElementById('redBtn');
     const timerEl = document.getElementById('timer');
-    const pointsEl = document.getElementById('points');
     const resultEl = document.getElementById('result');
     const backBtn = document.getElementById('backBtn');
 
+    const resultModal = document.getElementById('resultModal');
+    const modalMessage = document.getElementById('modalMessage');
+    const retryBtn = document.getElementById('retryBtn');
+    const toSelectorBtn = document.getElementById('toSelectorBtn');
+    const toMenuBtn = document.getElementById('toMenuBtn');
+
     let points = 0;
     let timeLeft = duration;
-    let interval;
+    let interval = null;
     let started = false;
 
+    function formatTime(sec){
+      return `00:${String(sec).padStart(2,'0')}`;
+    }
+
     function updateTimer(){
-      timerEl.textContent = `00:${String(timeLeft).padStart(2,'0')}`;
+      timerEl.textContent = formatTime(timeLeft);
       if (timeLeft <= 0){
         endGame();
       }
@@ -52,24 +87,56 @@
     function startTimer(){
       if (!started){
         started = true;
+        // Mostrar inmediatamente el primer segundo
         updateTimer();
-        interval = setInterval(updateTimer,1000);
+        interval = setInterval(updateTimer, 1000);
       }
     }
 
-    btn.onclick = ()=> {
+    // El cronómetro no arranca hasta el primer click; contamos clicks internamente sin mostrarlos
+    btn.addEventListener('click', () => {
       if (!started) startTimer();
       points++;
-      pointsEl.textContent = points;
-    };
+    });
 
     function endGame(){
-      clearInterval(interval);
+      if (interval) clearInterval(interval);
       btn.disabled = true;
-      resultEl.textContent = `¡Tiempo! Hiciste ${points} clicks en ${duration} segundos.`;
-      resultEl.classList.remove('hidden');
+      // Mostrar resultado en modal
+      modalMessage.textContent = `¡Tiempo! Hiciste ${points} clicks en ${duration} segundos.`;
+      resultModal.classList.remove('hidden');
+      // mostrar botón "Volver" dentro del panel también
       backBtn.classList.remove('hidden');
     }
+
+    // Modal actions
+    retryBtn.addEventListener('click', ()=> {
+      // reiniciar la misma partida (misma duración)
+      resultModal.classList.add('hidden');
+      resetAndStartAgain();
+    });
+
+    toSelectorBtn.addEventListener('click', ()=> {
+      location.href = 'timeattack.html';
+    });
+
+    toMenuBtn.addEventListener('click', ()=> {
+      location.href = 'index.html';
+    });
+
+    function resetAndStartAgain(){
+      points = 0;
+      timeLeft = duration;
+      started = false;
+      btn.disabled = false;
+      resultEl.classList.add('hidden');
+      backBtn.classList.add('hidden');
+      // dejar el timer en 00:00 hasta el primer click
+      timerEl.textContent = formatTime(duration);
+    }
+
+    // Inicializar vista
+    resetAndStartAgain();
   </script>
 </body>
 </html>

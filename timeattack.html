@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Pixel Clicker - TimeAttack</title>
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* Pequeño ajuste local para asegurar centrado y espaciado */
+    .center-col{display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .gap{gap:12px}
+    .btn.big{font-size:1.2rem;padding:14px 20px}
+  </style>
 </head>
 <body>
   <div class="bg retro-bg"></div>
@@ -17,7 +23,11 @@
         <button class="btn big" onclick="startTA(30)">30 seg</button>
         <button class="btn big" onclick="startTA(60)">60 seg</button>
       </div>
-      <button class="btn small" onclick="location.href='index.html'">Menú</button>
+
+      <div class="row gap" style="margin-top:12px">
+        <button class="btn small" onclick="location.href='index.html'">Menú</button>
+        <a class="btn small" href="game.html">Volver al juego</a>
+      </div>
     </div>
   </main>
 
